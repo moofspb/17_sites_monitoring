@@ -1,7 +1,11 @@
 import os
+import argparse
 import requests
 import whois
-from datetime import datetime
+from datetime import datetime, timedelta
+
+
+DAYS_LIMIT = timedelta(days=30)
 
 
 def load_urls4check(path):
@@ -17,27 +21,41 @@ def is_server_respond_with_200(url):
         request = requests.get(url)
         return True if request.status_code == 200 else False
     except requests.exceptions.ConnectionError:
-        return False
+        return None
 
 
-def get_domain_expiration_date(domain_name):
+def get_domain_expiration_date(domain):
     try:
-        domain_info = whois.query(domain_name)
+        domain_info = whois.query(domain)
         return domain_info.expiration_date
     except AttributeError:
         return None
 
 
-if __name__ == '__main__':
-    urls = load_urls4check('urls.txt')
-    domains = [domain.lstrip('http://') for domain in urls]
-    for url in urls:
-        if is_server_respond_with_200(url):
-            print('{} - OK!'.format(url))
+def check_need_to_pay_domain(domain, days_limit):
+    try:
+        if get_domain_expiration_date(domain) - datetime.now() > days_limit:
+            return True
         else:
-            print('{} - ERROR!'.format(url))
-    for domain in domains:
-        if get_domain_expiration_date(domain)
+            return False
+    except TypeError:
+        return None
 
 
-
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Check status of sites from txt file. Status / '
+                                                 'is OK if response status HTTP 200 and there / '
+                                                 'is more than month till expiration date.')
+    parser.add_argument('filepath', help='A path to a text file')
+    args = parser.parse_args()
+    urls = load_urls4check(args.filepath)
+    for url in urls:
+        if is_server_respond_with_200(url) and \
+                check_need_to_pay_domain(url.lstrip('http://'), DAYS_LIMIT):
+            print('{} - OK!'.format(url))
+        if check_need_to_pay_domain(url.lstrip('http://'), DAYS_LIMIT) is None:
+            print('{} - Can\'t get an expiration date!'.format(url))
+        elif not check_need_to_pay_domain(url.lstrip('http://'), DAYS_LIMIT):
+            print('{} - It\'s time to pay domain!'.format(url))
+        if not is_server_respond_with_200(url):
+            print('{} - No connection!'.format(url))
