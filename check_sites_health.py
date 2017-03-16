@@ -5,9 +5,6 @@ import whois
 from datetime import datetime, timedelta
 
 
-DAYS_LIMIT = timedelta(days=30)
-
-
 def load_urls4check(path):
     if not os.path.exists(path):
         return None
@@ -32,9 +29,9 @@ def get_domain_expiration_date(domain):
         return None
 
 
-def check_need_to_pay_domain(domain, days_limit):
+def check_need_to_pay_domain(domain, days_limit=30):
     try:
-        if get_domain_expiration_date(domain) - datetime.now() > days_limit:
+        if get_domain_expiration_date(domain) - datetime.now() > timedelta(days_limit):
             return True
         else:
             return False
@@ -51,11 +48,11 @@ if __name__ == '__main__':
     urls = load_urls4check(args.filepath)
     for url in urls:
         if is_server_respond_with_200(url) and \
-                check_need_to_pay_domain(url.lstrip('http://'), DAYS_LIMIT):
+                check_need_to_pay_domain(url.lstrip('http://')):
             print('{} - OK!'.format(url))
-        if check_need_to_pay_domain(url.lstrip('http://'), DAYS_LIMIT) is None:
+        if check_need_to_pay_domain(url.lstrip('http://')) is None:
             print('{} - Can\'t get an expiration date!'.format(url))
-        elif not check_need_to_pay_domain(url.lstrip('http://'), DAYS_LIMIT):
+        elif not check_need_to_pay_domain(url.lstrip('http://')):
             print('{} - It\'s time to pay domain!'.format(url))
         if not is_server_respond_with_200(url):
             print('{} - No connection!'.format(url))
