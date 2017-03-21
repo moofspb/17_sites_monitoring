@@ -26,7 +26,7 @@ def load_urls4check(path):
 def is_server_respond_with_200(url):
     try:
         request = requests.get(url)
-        return True if request.status_code == 200 else False
+        return request.status_code == 200
     except requests.exceptions.ConnectionError:
         return None
 
@@ -43,28 +43,29 @@ def get_domain_expiration_date(domain):
 
 def check_need_to_pay_domain(domain, days_limit=30):
     try:
-        if get_domain_expiration_date(domain) - datetime.now() > timedelta(days_limit):
-            return True
-        else:
-            return False
+        return get_domain_expiration_date(domain) - datetime.now() < timedelta(days_limit)
     except TypeError:
         return None
 
 
-def print_sites_status(urls):
-    for url in urls:
-        if is_server_respond_with_200(url) and \
-                check_need_to_pay_domain(url.lstrip('http://')):
-            print('{} - OK!'.format(url))
-        elif not is_server_respond_with_200(url):
-            print('{} - No connection!'.format(url))
-        elif check_need_to_pay_domain(url.lstrip('http://')) is None:
-            print('{} - Can\'t get an expiration date!'.format(url))
-        elif not check_need_to_pay_domain(url.lstrip('http://')):
-            print('{} - It\'s time to pay domain!'.format(url))
+def print_sites_status(url, is_status_200, is_time_to_pay_domain):
+    if is_status_200:
+        print('{} -HTTP status is OK! (200)'.format(url))
+    else:
+        print('{} - No connection!'.format(url))
+    if not is_time_to_pay_domain:
+        print('{} - Domain paid!'.format(url))
+    elif is_time_to_pay_domain is None:
+        print('{} - Can\'t get an expiration date!'.format(url))
+    else:
+        print('{} - It\'s time to pay domain!'.format(url))
 
 
 if __name__ == '__main__':
     filepath = get_script_args()
     sites_urls = load_urls4check(filepath)
-    print_sites_status(sites_urls)
+    for url in sites_urls:
+        is_200 = is_server_respond_with_200(url)
+        is_time_to_pay_domain = check_need_to_pay_domain(url.lstrip('http://'))
+        print_sites_status(url, is_200, is_time_to_pay_domain)
+

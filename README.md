@@ -13,16 +13,14 @@ Example:
 
 $ python check_sites_health.py urls.txt
 
-'http://google.com' - OK
-'http://amazon.com' - OK
-'http://mail.ru' - It's time to pay domain!
-'http://ulmart.ru' - OK
-'http://avito.ru' - Can't get an expiration date!
-'http://airbnb.com' - OK
-'http://afllas.com' - No connection!
-'http://booking.com' - OK
-'http://youtube.com' - No connection!
-'http://devman.org' - OK
+http://vk.com -HTTP status is OK! (200)
+http://vk.com - Domain paid!
+http://mail.ru -HTTP status is OK! (200)
+http://mail.ru - Domain paid!
+http://facebook.com -HTTP status is OK! (200)
+http://facebook.com - Domain paid!
+http://ubuntu.ru -HTTP status is OK! (200)
+http://ubuntu.ru - It's time to pay domain!
 
 ```
 
